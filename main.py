@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from random import choice, randint, shuffle
+import json
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 
@@ -32,18 +33,33 @@ def save():
 	website = website_entry.get()
 	email = email_entry.get()
 	password = pass_entry.get()
+	new_data = {website: {
+		"email": email,
+		"password": password,
+	}}
 
-	if len(website) == 0 or len(email) == 0 or len(password) == 0:
+	if len(website) == 0 or len(password) == 0:
 		messagebox.showinfo(title="Ooops", message="Don't leave any fields empty.")
 	else:
-		if messagebox.askokcancel(title=website, message=f"These are the details entered: \nEmail: {email} \nPassword: {password}"):
+			try:
+				with open("data.json", mode="r") as file:
+					#Reading old data
+					data = json.load(file)
+			except FileNotFoundError:
+				with open("data.json", mode="w") as file:
+					json.dump(new_data, file, indent=4)
+			else:
+				#Updating old data with new data
+				data.update(new_data)
 
-			with open("data.txt", mode="a") as file:
-				file.write(f"{website} | {email} | {password}\n")
+				with open("data.json", mode="w") as file:
+					#Saving updated data
+					json.dump(data, file, indent=4)
+			finally:
+				website_entry.delete(0, END)
+				pass_entry.delete(0, END)
+				website_entry.focus()
 
-			website_entry.delete(0, END)
-			pass_entry.delete(0, END)
-			website_entry.focus()
 # ---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
@@ -56,7 +72,6 @@ canvas.create_image(100, 100, image=logo_img)
 canvas.grid(row=0, column=1)
 
 #Labels
-
 website_label = Label(text="Website:")
 website_label.grid(row=1, column=0)
 
